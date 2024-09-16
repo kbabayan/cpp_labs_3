@@ -25,7 +25,7 @@ public:
 
     std::string fullname() const
     {
-        return "Babayan Konstantin Aramovch";
+        return "Babayan Konstantin";
     }
 
 private:
