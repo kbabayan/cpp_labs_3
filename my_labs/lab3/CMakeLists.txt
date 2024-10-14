@@ -1,27 +1,32 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.10)
+project(SimpleIteration)
 
-project(SimpleIterationMethod)
-
-set(CMAKE_CXX_STANDARD 11)
-
-# FetchContent для Catch2
+# Добавляем Google Test
 include(FetchContent)
 FetchContent_Declare(
-  catch2
-  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG v3.0.1
+  googletest
+  URL https://github.com/google/googletest/archive/release-1.12.1.zip
 )
+FetchContent_MakeAvailable(googletest)
 
+enable_testing()
+
+# Добавляем Catch2
+FetchContent_Declare(
+  catch2
+  URL https://github.com/catchorg/Catch2/archive/v2.13.7.zip
+)
 FetchContent_MakeAvailable(catch2)
 
-# Создание статической библиотеки для метода простых итераций
-add_library(SimpleIterationMethod STATIC SimpleIterationMethod.cpp)
+# Указываем исходники для основной библиотеки
+add_library(SimpleIterationMethod SimpleIterationMethod.cpp SimpleIterationMethod.hpp)
 
-# Убедимся, что тесты могут использовать библиотеку
-target_include_directories(SimpleIterationMethod PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+# Линкуем тесты Google Test
+add_executable(SimpleIterationTests tests/test_SimpleIterationMethod.cpp)
+target_link_libraries(SimpleIterationTests SimpleIterationMethod gtest gtest_main)
+add_test(NAME SimpleIterationTests COMMAND SimpleIterationTests)
 
-# Включаем поддержку CTest
-include(CTest)
-
-# Добавляем директорию с тестами
-add_subdirectory(tests)
+# Линкуем тесты Catch2
+add_executable(Catch2Tests tests/test_catch2.cpp)
+target_link_libraries(Catch2Tests SimpleIterationMethod Catch2::Catch2)
+add_test(NAME Catch2Tests COMMAND Catch2Tests)

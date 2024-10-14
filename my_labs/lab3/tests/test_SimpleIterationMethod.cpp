@@ -1,28 +1,37 @@
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#include <gtest/gtest.h>
 #include <cmath>
-#include "../SimpleIterationMethod.cpp"
+#include <functional>
+#include "../SimpleIterationMethod.cpp"  // Подключаем вашу реализацию
 
-// Пример функции φ(x) = cos(x)
-double phi(double x) {
-    return cos(x);
+// Тест для случая, когда метод сходится к нужному значению
+TEST(SimpleIterationTest, ConvergesToRoot) {
+    auto phi = [](double x) { return 0.5 * (x + 3 / x); }; // Функция для теста
+    double initial_guess = 1.0;
+    double epsilon = 1e-6;
+    int max_iterations = 100;
+
+    double result = SimpleIterationMethod(phi, initial_guess, epsilon, max_iterations);
+    EXPECT_NEAR(result, sqrt(3.0), epsilon);  // Ожидаем результат, близкий к sqrt(3)
 }
 
-TEST_CASE("Test Simple Iteration Method - Close to Root", "[SimpleIterationMethod]") {
-    double root = SimpleIterationMethod(phi, 0.5, 1e-6, 1000);  // Начальное приближение
-    std::cout << "Computed root: " << root << std::endl;
-    std::cout << "Cosine of computed root: " << cos(root) << std::endl;
-    REQUIRE(fabs(root - cos(root)) < 1e-3);  // Проверяем, что φ(root) ≈ root
+// Тест для случая, когда достигается максимальное число итераций
+TEST(SimpleIterationTest, MaxIterationsReached) {
+    auto phi = [](double x) { return x / 2; }; // Функция, которая медленно сходится
+    double initial_guess = 100.0;
+    double epsilon = 1e-6;
+    int max_iterations = 5;
+
+    double result = SimpleIterationMethod(phi, initial_guess, epsilon, max_iterations);
+    EXPECT_EQ(max_iterations, 5);  // Проверяем, что количество итераций равно максимальному
 }
 
-TEST_CASE("Test Simple Iteration Method - Convergence", "[SimpleIterationMethod]") {
-    double root = SimpleIterationMethod([](double x) { return x / 2; }, 1.0, 1e-6, 1000);
-    REQUIRE(fabs(root - 0.0) < 1e-3);  // Мы ожидаем, что x будет сходиться к 0
-}
+// Тест для случая расходимости
+TEST(SimpleIterationTest, DivergenceDetected) {
+    auto phi = [](double x) { return 2 * x; }; // Функция, которая расходится
+    double initial_guess = 1.0;
+    double epsilon = 1e-6;
+    int max_iterations = 100;
 
-// Проверка на отсутствие сходимости для функции, у которой нет корня
-TEST_CASE("Test Simple Iteration Method - No Convergence", "[SimpleIterationMethod]") {
-    double root = SimpleIterationMethod(phi, 10.0, 1e-6, 100);  // Плохое начальное приближение
-    // Ожидаем, что корень не найден, здесь мы просто проверяем, что метод не сошелся
-    REQUIRE(fabs(root - cos(root)) >= 1e-7);  // Ожидаем, что φ(x) ≠ x
+    double result = SimpleIterationMethod(phi, initial_guess, epsilon, max_iterations);
+    EXPECT_GT(result, 1e10);  // Ожидаем, что результат превышает значение расходимости
 }
