@@ -1,23 +1,25 @@
+# Минимальная версия CMake
 cmake_minimum_required(VERSION 3.10)
-project(my_labs)
 
+# Название проекта
+project(lab4)
+
+# Устанавливаем стандарт C++
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Добавляем Catch2
-include(FetchContent)
-FetchContent_Declare(
-    Catch2
-    URL https://github.com/catchorg/Catch2/archive/v2.13.8.zip  # Укажите нужную версию
-)
-FetchContent_MakeAvailable(Catch2)
+# Указываем директорию для заголовочных файлов
+include_directories(include)
 
-add_library(iomanip INTERFACE)
-target_include_directories(iomanip INTERFACE include)
+# Добавляем тесты
+add_executable(tests_iomanip tests/iomanip.cpp)
 
-file(GLOB TESTS tests/*.cpp)
-add_executable(tests_iomanip ${TESTS})
+# Подключаем директорию include для тестов
+target_include_directories(tests_iomanip PRIVATE include)
 
-target_link_libraries(tests_iomanip iomanip Catch2::Catch2)
+# Подключаем Catch2, если он установлен локально или глобально
+# find_package(Catch2 REQUIRED) # раскомментируйте, если используете глобально установленный Catch2
 
+# Включаем тесты, если используете CTest
 enable_testing()
-add_test(NAME tests_iomanip COMMAND tests_iomanip)
+add_test(NAME IOMANIP_TEST COMMAND tests_iomanip)

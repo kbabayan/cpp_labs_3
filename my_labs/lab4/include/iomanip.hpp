@@ -8,62 +8,83 @@
 #define __IOMANIP_HPP__
 
 #include <iostream>
-#include <sstream>
-#include <string>
 
-// Манипулятор `endm` добавляет "[eol]\n" к потоку
-inline std::ostream& endm(std::ostream& os) {
-    os << "[eol]\n";
-    return os;
+inline std::ostream& endm(std::ostream& stream){
+	return stream << "[eol]\n";
 }
 
-// Манипулятор `squares` выводит значение в квадратных скобках
-struct squares_t {};
-inline squares_t squares;
 
-// Перегрузка оператора для манипулятора squares
-inline std::ostream& operator<<(std::ostream& os, const squares_t&) {
-    // Не выводим ничего, просто возвращаем поток
-    return os;
-}
-
-// Оператор для закрытия квадратных скобок
-inline std::ostream& operator<<(std::ostream& os, const squares_t&) {
-    os << "]"; // Если нужно, можно добавить логику для вывода, если это необходимо
-    return os;
-}
-
-// Класс для обработки сложения значений
-class add_t {
-public:
-    add_t() : sum_(0.0) {}
-
-    // Перегрузка оператора для добавления значений
-    template<typename T>
-    add_t& operator<<(const T& value) {
-        std::stringstream ss;
-        ss << value;
-
-        double number = 0.0;
-        if (!(ss >> number)) {
-            std::cerr << "Invalid argument: " << value << " cannot be converted to double." << std::endl;
-            return *this; // Возвращаем текущее состояние без изменения суммы
-        }
-
-        sum_ += number; // Добавляем к сумме
-        return *this;
-    }
-
-    // Перегрузка оператора вывода для отображения суммы
-    friend std::ostream& operator<<(std::ostream& os, const add_t& add) {
-        os << add.sum_;
-        return os;
-    }
-
+class Support {
 private:
-    double sum_;
+	std::ostream& stream_;
+public:
+	Support(std::ostream &stream) : stream_(stream){}
+
+	template <class T>
+	std::ostream& operator << (const T& var) {
+		stream_ << '[' << var << ']';
+		return stream_;
+	}
 };
 
-inline add_t add;
+class Squares {
+
+};
+
+inline Support operator <<(std::ostream& os, Squares) {
+	return Support(os);
+}
+const Squares squares;
+
+class Support1 {
+public:
+	std::ostream& stream_;
+	Support1(std::ostream& stream) : stream_(stream) {}
+	class Support2 {
+	public:
+		std::ostream& stream_;
+		int i;
+		double d;
+		std::string s;
+
+		Support2(std::ostream& stream, const int & var ) : stream_(stream), i(var) {}
+		Support2(std::ostream& stream, const double var) : stream_(stream), d(var) {}
+		Support2(std::ostream& stream, const std::string& var) : stream_(stream), s(var) {}
+		// Можете подсказать, почему не работает без const в предыдущей строчке?
+		// Выдает ошибку при компиляции <function - style - cast> : невозможно преобразовать "initializer list" в "Support1::Support2"	
+		
+		std::ostream& operator << (const int& var) {
+			stream_ << i+ var;
+			return stream_;
+		}
+		std::ostream& operator << (const double& var) {
+			stream_ << d + var;
+			return stream_;
+		}
+		std::ostream& operator << (const std::string& var) {
+			stream_ << s + var;
+			return stream_;
+		}
+	};
+
+	template <class T>
+	struct Support2 operator <<  (T const& var) {
+		return Support2(stream_,var);
+	}
+};
+
+
+class Add {
+
+};
+
+
+inline Support1 operator << (std::ostream& os, const Add) {
+	return Support1(os);
+}
+
+const Add add;
+
+
 
 #endif // __IOMANIP_HPP__
